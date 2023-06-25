@@ -29,5 +29,19 @@ public class Tests
         var expected = 157320;
         Assert.AreEqual(actual, expected);
     }
+    [Test]
+    public void Aoc9Part1()
+    {
+        var actual = AdventOfCode9.Part1();
+
+        Assert.AreEqual(actual.Count, 6067);
+    }
+    [Test]
+    public void Aoc9Part2()
+    {
+        var actual = AdventOfCode9.Part2();
+
+        Assert.AreEqual(actual.Count, 2471);
+    }
 }
 
