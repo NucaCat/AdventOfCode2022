@@ -21,8 +21,8 @@ public sealed class AdventOfCode9
         foreach (var move in moves
             .SelectMany(u => Enumerable.Range(0, u.MovesCount).Select(_ => u.Direction)))
         {
-            head = MoveHead(head, move);
-            tail = MoveTail(tail, head);
+            MoveHead(head, move);
+            MoveTail(tail, head);
 
             visitedByTail.Add(tail.ToTuple());
         }
@@ -53,15 +53,11 @@ public sealed class AdventOfCode9
         foreach (var move in moves
             .SelectMany(u => Enumerable.Range(0, u.MovesCount).Select(_ => u.Direction)))
         {
-            var h = MoveHead(head, move);
-            head.X = h.X;
-            head.Y = h.Y;
+            MoveHead(head, move);
             
             foreach (var (currentHead, currentTail) in zipped)
             {
-                var t = MoveTail(currentTail, currentHead);
-                currentTail.X = t.X;
-                currentTail.Y = t.Y;
+                MoveTail(currentTail, currentHead);
             }
             
             visitedByTail.Add(tail.ToTuple());
@@ -70,7 +66,7 @@ public sealed class AdventOfCode9
         return visitedByTail;
     }
 
-    private static Rope MoveTail(Rope tail, Rope head)
+    private static void MoveTail(Rope tail, Rope head)
     {
         var xOffset = head.X - tail.X;
         var yOffset = head.Y - tail.Y;
@@ -80,35 +76,28 @@ public sealed class AdventOfCode9
 
         var moveDiagonally = (moveHorizontally && yOffset != 0) || (moveVertically && xOffset != 0);
 
-        tail = (moveHorizontally, moveVertically, moveDiagonally) switch
+        var _ = (moveHorizontally, moveVertically, moveDiagonally) switch
         {
-            (true, _, false) => tail.SnapHorizontally(xOffset > 0 ? 1 : -1),
-            (_, true, false) => tail.SnapVertically(yOffset > 0 ? 1 : -1),
-            (_, _, true) => tail.SnapVertically(yOffset > 0 ? 1 : -1).SnapHorizontally(xOffset > 0 ? 1 : -1),
+            (true, _, false) => tail.MoveHorizontally(xOffset > 0 ? 1 : -1),
+            (_, true, false) => tail.MoveVertically(yOffset > 0 ? 1 : -1),
+            (_, _, true) => tail.MoveVertically(yOffset > 0 ? 1 : -1).MoveHorizontally(xOffset > 0 ? 1 : -1),
             _ => tail
         };
-
-        return tail;
     }
 
-    private static Rope MoveHead(Rope head, Direction direction)
+    private static void MoveHead(Rope head, Direction direction)
     {
-        var x = head.X + direction switch
+        head.X += direction switch
         {
             Direction.Left => -1,
             Direction.Right => 1,
             _ => 0
         };
-        var y = head.Y + direction switch
+        head.Y += direction switch
         {
             Direction.Up => -1,
             Direction.Down => 1,
             _ => 0
-        };
-        return new Rope
-        {
-            X = x,
-            Y = y
         };
     }
 
@@ -128,6 +117,7 @@ public sealed class AdventOfCode9
                     "L" => Direction.Left,
                     "U" => Direction.Up,
                     "D" => Direction.Down,
+                    _ => throw new ArgumentOutOfRangeException()
                 },
                 MovesCount = Convert.ToInt32(tokens[1]),
             };
@@ -142,21 +132,24 @@ public sealed class AdventOfCode9
         Left,
         Right
     }
-}
     
-internal class Rope
-{
-    public required int X { get; set; }
-    public required int Y { get; set; }
+    private class Rope
+    {
+        public required int X { get; set; }
+        public required int Y { get; set; }
 
-    public (int, int) ToTuple() => (X, Y);
-}
-    
-file static class SnapExtensions
-{
-    public static Rope SnapHorizontally(this Rope tail, int xOffset) 
-        => new() {Y = tail.Y, X = tail.X + xOffset };
-
-    public static Rope SnapVertically(this Rope tail, int yOffset)
-        => new() { Y = tail.Y + yOffset, X = tail.X};
+        public (int, int) ToTuple() => (X, Y);
+        
+        public Rope MoveHorizontally(int xOffset)
+        {
+            X += xOffset;
+            return this;
+        }
+        
+        public Rope MoveVertically(int yOffset)
+        {
+            Y += yOffset;
+            return this;
+        }
+    }
 }
